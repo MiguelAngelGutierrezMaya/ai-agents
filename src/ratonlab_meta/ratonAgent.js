@@ -134,7 +134,6 @@ class CleanerAgent extends Agent {
             if (perception[i] === 0) availablePositions.push(this.getAvailablePosition(i))
         for (let i = 0; i < availablePositions.length; i++) {
             let nextPosition = this.getNextPosition(availablePositions[i]);
-            console.log(nextPosition)
             nextPositions.push({
                 action: availablePositions[i],
                 position: { ...nextPosition },
@@ -143,9 +142,7 @@ class CleanerAgent extends Agent {
         }
         for (let i = 0; i < nextPositions.length; i++)
             distances.push({
-                action: nextPositions[i].action,
-                position: nextPositions[i].position,
-                timesVisited: nextPositions[i].timesVisited,
+                ...nextPosition[i],
                 distance: this.getPointDistanceToGoal(nextPositions[i].position)
             })
         nextPositions.sort((a, b) => {
