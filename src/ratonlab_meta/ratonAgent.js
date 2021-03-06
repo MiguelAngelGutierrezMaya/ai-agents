@@ -41,7 +41,6 @@ class CleanerAgent extends Agent {
                 this.memory[i][j] = 0
             }
         }
-        this.memory[initialValue.raton.y][initialValue.raton.x] = this
         this.memory[initialValue.queso.y][initialValue.queso.x] = -1
         this.currentPosition = { ...initialValue.raton }
         this.goal = { ...initialValue.queso };
@@ -109,9 +108,8 @@ class CleanerAgent extends Agent {
      * This function update the agent position on board memory and set de last position with 1
      */
     updateCurrentPosition(action) {
-        this.memory[this.currentPosition.y][this.currentPosition.x] = 1
+        this.memory[this.currentPosition.y][this.currentPosition.x] += 1
         this.currentPosition = { ...this.getNextPosition(action) }
-        this.memory[this.currentPosition.y][this.currentPosition.x] = this
         return action
     }
 
@@ -130,24 +128,34 @@ class CleanerAgent extends Agent {
      * THis function verify if the netx position is more near based in the goal position
      */
     verifyMovement(perception) {
-        let lastPerception = [...perception], availablePositions = [], nextPositions = [], distances = []
+        let availablePositions = [], nextPositions = [], distances = []
         perception.pop()
         for (let i = 0; i < perception.length; i++)
             if (perception[i] === 0) availablePositions.push(this.getAvailablePosition(i))
-        for (let i = 0; i < availablePositions.length; i++)
-            nextPositions.push({ action: availablePositions[i], position: this.getNextPosition(availablePositions[i]) })
-        for (let i = 0; i < nextPositions.length; i++)
-            distances.push({ action: nextPositions[i].action, distance: this.getPointDistanceToGoal(nextPositions[i].position) })
-        let smallestObject = distances.reduce((min, obj) => obj.distance < min.distance ? obj : min, distances[0])
-        let nextPosition = this.getNextPosition(smallestObject.action)
-        if (this.memory[nextPosition.y][nextPosition.x] === 1) {
-            smallestObject.action = this.table[lastPerception.join()]
-            nextPosition = this.getNextPosition(smallestObject.action)
-            console.log('nueva posicion', nextPosition, lastPerception.join())
-            if (this.memory[nextPosition.y][nextPosition.x] === 1) {
-                smallestObject.action = this.table[lastPerception.join() + ',0']
-            }
+        for (let i = 0; i < availablePositions.length; i++) {
+            let nextPosition = this.getNextPosition(availablePositions[i]);
+            console.log(nextPosition)
+            nextPositions.push({
+                action: availablePositions[i],
+                position: { ...nextPosition },
+                timesVisited: this.memory[nextPosition.y][nextPosition.x]
+            })
         }
+        for (let i = 0; i < nextPositions.length; i++)
+            distances.push({
+                action: nextPositions[i].action,
+                position: nextPositions[i].position,
+                timesVisited: nextPositions[i].timesVisited,
+                distance: this.getPointDistanceToGoal(nextPositions[i].position)
+            })
+        nextPositions.sort((a, b) => {
+            if (a.timesVisited > b.timesVisited) return 1;
+            if (b.timesVisited > a.timesVisited) return -1;
+            return 0;
+        });
+        let smallestObject = distances.reduce((min, obj) => obj.distance < min.distance ? obj : min, distances[0])
+        if (nextPositions[0].timesVisited < smallestObject.timesVisited)
+            smallestObject = nextPositions[0]
         if (this.currentPosition.x === this.goal.x && this.currentPosition.y === this.goal.y) smallestObject.action = this.table["default"]
         return smallestObject.action || this.table['default']
     }
