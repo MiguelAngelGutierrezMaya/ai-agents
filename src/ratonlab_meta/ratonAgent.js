@@ -142,7 +142,7 @@ class CleanerAgent extends Agent {
         }
         for (let i = 0; i < nextPositions.length; i++)
             distances.push({
-                ...nextPosition[i],
+                ...nextPositions[i],
                 distance: this.getPointDistanceToGoal(nextPositions[i].position)
             })
         nextPositions.sort((a, b) => {
